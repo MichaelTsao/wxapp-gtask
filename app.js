@@ -1,28 +1,41 @@
 //app.js
 App({
   onLaunch: function (ops) {
-    // 获取群信息
-    console.log("ticket: " + ops.shareTicket)
-    if (ops.shareTicket != undefined && ops.shareTicket != "") {
-      wx.getShareInfo({
-        shareTicket: ops.shareTicket,
-        complete(res) {
-          console.log("Gid: " + res.encryptedData)
+    let code = ''
+    // 登录
+    wx.login({
+      success: res => {
+        code = res.code
+
+        // 获取群信息
+        console.log("ticket: " + ops.shareTicket)
+        if (ops.shareTicket != undefined && ops.shareTicket != "") {
+          wx.getShareInfo({
+            shareTicket: ops.shareTicket,
+            complete(res) {
+              wx.request({
+                url: "http://gtask.caoxw.com:8086/site/test",
+                data: {
+                  'srcData': res.encryptedData,
+                  'iv': res.iv,
+                  'code': code,
+                },
+                success: function (res) {
+                  console.log(res.data)
+                }
+              });
+              console.log("Gid: " + res.encryptedData)
+            }
+          })
         }
-      })
-    }
+      }
+    })
 
     // 展示本地存储能力
     var logs = wx.getStorageSync('logs') || []
     logs.unshift(Date.now())
     wx.setStorageSync('logs', logs)
 
-    // 登录
-    wx.login({
-      success: res => {
-        // 发送 res.code 到后台换取 openId, sessionKey, unionId
-      }
-    })
     // 获取用户信息
     wx.getSetting({
       success: res => {
